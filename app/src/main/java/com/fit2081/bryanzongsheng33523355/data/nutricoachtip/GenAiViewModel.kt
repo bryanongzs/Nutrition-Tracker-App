@@ -1,6 +1,7 @@
 package com.fit2081.bryanzongsheng33523355.data.nutricoachtip
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -8,6 +9,7 @@ import com.fit2081.bryanzongsheng33523355.UiState
 import com.fit2081.bryanzongsheng33523355.data.AuthManager
 import com.fit2081.bryanzongsheng33523355.data.patient.Patient
 import com.fit2081.bryanzongsheng33523355.data.patient.PatientsRepository
+import com.fit2081.bryanzongsheng33523355.BuildConfig
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
 import kotlinx.coroutines.Dispatchers
@@ -38,13 +40,12 @@ class GenAiViewModel(context: Context) : ViewModel() {
     private val patientRepository = PatientsRepository(context)
 
     /*
-    I used Gemini-1.5-flash in NutriCoach and Clinician Dashboard.
+    Gemini 3.5 Flash Lite is used for NutriCoach and Clinician Dashboard.
     The tool was used to provide NutriCoach tips and 3 data patterns.
     */
-    // api key is "AIzaSyBFu-L1YK0_GTIwmuPKwhLeys8yS2xeX8I"
     private val generativeModel = GenerativeModel(
-        modelName = "gemini-1.5-flash",
-        apiKey = "AIzaSyBFu-L1YK0_GTIwmuPKwhLeys8yS2xeX8I"
+        modelName = "gemini-3.5-flash-lite",
+        apiKey = BuildConfig.GEMINI_API_KEY.trim()
     )
 
     // get the fruit encourage message
@@ -64,7 +65,11 @@ class GenAiViewModel(context: Context) : ViewModel() {
                     _uiTipState.value = UiState.Success(outputContent)
                 }
             } catch (e: Exception) {
-                _uiTipState.value = UiState.Error(e.localizedMessage ?: "")
+                Log.e("GenAiViewModel", "Motivational message request failed", e)
+                val errorMessage = e.message?.takeIf { it.isNotBlank() }
+                    ?: e::class.simpleName
+                    ?: "Unknown error"
+                _uiTipState.value = UiState.Error(errorMessage)
             }
         }
     }
